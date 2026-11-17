@@ -21,6 +21,14 @@ h1 .l span{display:inline-block;will-change:transform}
 .next{position:fixed;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;z-index:2;color:#eaf1f8;opacity:0;pointer-events:none}
 .next p{font-size:14px;font-weight:500;letter-spacing:.02em;opacity:.7}
 .next h2{margin-top:10px;font-size:clamp(40px,6vw,92px);font-weight:600;letter-spacing:-.045em;line-height:1}
+/* the intro film, in the dark of the dive */
+.intro{position:fixed;left:50%;top:50%;z-index:2;width:min(1100px,84vw,calc((100vh - 170px) * 16 / 9));aspect-ratio:16/9;transform:translate(-50%,-50%);opacity:0;pointer-events:none;border-radius:6px;overflow:hidden;background:#000;
+ box-shadow:0 0 0 1px rgba(200,230,255,.1),0 70px 120px -50px rgba(0,0,0,.8),0 0 140px -40px rgba(120,180,220,.22)}
+.intro video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.intro .isnd{position:absolute;right:14px;bottom:14px;display:flex;align-items:center;gap:8px;padding:9px 15px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(10,14,20,.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-family:inherit;font-size:14px;font-weight:500;line-height:1;cursor:pointer}
+.intro .isnd svg{width:16px;height:16px}
+.intro .isnd:focus-visible{outline:2px solid #fff;outline-offset:3px}
+@media (max-width:740px){.intro{width:min(86vw,calc((100svh - 150px) * 9 / 16));aspect-ratio:9/16}}
 /* under the water: the work */
 .dive{height:380vh}
 .work{position:relative;z-index:3;color:rgb(var(--wk))}
@@ -200,6 +208,7 @@ h1 .l span{display:inline-block;will-change:transform}
 <div class="side" id="side"><b>Jetzt</b><br>Overlink · Wayline · Homing<br>Frei für neue Projekte</div>
 <div class="next" id="next"><p>Unter der Oberfläche</p><h2>Die Arbeit.</h2></div>
 <div class="dive"></div>
+<div class="intro" id="intro"><video id="introv" playsinline muted preload="none" data-desk="../covers/intro-de.mp4" data-phone="../covers/intro-de-phone.mp4"></video><button type="button" class="isnd" id="isnd" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Ton an</span></button></div>
 <main class="work">
   <section class="field" id="field"><div class="fh"><h3>Sechs Dinge, die ich gebaut habe.</h3></div><div class="ring3"><div class="ring" id="ring">
 <button class="fl" aria-label="Overlink, Desktop-Agent. Projekt öffnen" data-i="0" data-name="Overlink" data-kind="Desktop-Agent · Private Beta bald" data-line="Die KI-Chats, die du schon nutzt, arbeiten auf deinen eigenen PCs. Jeder Schritt festgehalten, riskante warten auf dein OK." data-link="../projects/overlink/" data-label="Full story"><span class="film"><img class="cv" src="../covers/overlink.jpg" alt=""><video muted loop playsinline preload="none" style="display:none" poster="../media/overlink-loop-poster.jpg" data-src="../media/overlink-loop-1440.mp4"></video></span></button>
@@ -451,6 +460,23 @@ function done(type,name,ans){fp.classList.remove('on');fc.classList.remove('on')
  document.getElementById('adp').textContent=type==='book'?`Dein Gespräch ist gebucht: ${fmtDay(new Date(ans.slot))} um ${fmtT(new Date(ans.slot))} Uhr deutscher Zeit. Die Kalendereinladung ist unterwegs an ${ans.email}.`:`Deine Anfrage ist angekommen. Eine Kopie ist unterwegs an ${ans.email}. Ich antworte innerhalb von zwei Werktagen mit Fragen, einem Plan und einem Preis.`}
 [fp,fc].forEach(f=>f.addEventListener('input',e=>{e.target.classList?.remove('bad');if(!f.querySelector('.bad'))f.querySelector('.err').textContent=''}));
 fp.addEventListener('submit',e=>{e.preventDefault();send(fp,'project')});fc.addEventListener('submit',e=>{e.preventDefault();send(fc,'book')});
+})();
+</script><script>
+// intro film in the deep: fades in after "Die Arbeit." has gone, plays while you are down there, fades as the projects rise
+(function(){const box=document.getElementById('intro');if(!box)return;const v=document.getElementById('introv'),b=document.getElementById('isnd'),dive=document.querySelector('.dive'),field=document.getElementById('field');
+ dive.style.height='540vh';
+ const ON='<path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',OFF=b.querySelector('svg').innerHTML;
+ const sm=x=>{x=Math.min(Math.max(x,0),1);return x*x*(3-2*x)};let shown=false;
+ function src(){if(v.getAttribute('src'))return;const ph=innerWidth<=740||innerWidth/innerHeight<.9;v.src=ph?v.dataset.phone:v.dataset.desk;}
+ function upd(){const H=innerHeight,y=scrollY,ft=field.getBoundingClientRect().top;
+  const k=sm((y-H*1.95)/(H*.35))*sm((ft-H*.55)/(H*.45));
+  box.style.opacity=k.toFixed(3);box.style.transform=`translate(-50%,calc(-50% + ${((1-k)*(ft<H?-30:30)).toFixed(1)}px)) scale(${(.96+.04*k).toFixed(4)})`;
+  box.style.pointerEvents=k>.5?'auto':'none';
+  if(k>.02){src();if(!shown){shown=true;try{v.currentTime=0}catch(e){}}if(v.paused&&!v.ended)v.play().catch(()=>{});}
+  else if(!v.paused)v.pause();}
+ b.addEventListener('click',()=>{const on=v.muted;v.muted=!on;b.setAttribute('aria-pressed',on);b.querySelector('svg').innerHTML=on?ON:OFF;b.querySelector('span').textContent=on?'Ton aus':'Ton an';
+  if(on&&(v.ended||v.currentTime>v.duration-.5))v.currentTime=0;v.play().catch(()=>{});});
+ addEventListener('scroll',upd,{passive:true});addEventListener('resize',upd);upd();
 })();
 </script><div id="case" aria-hidden="true"><div class="cbg"></div><div class="csc" id="csc">
 <div class="cbar"><button type="button" id="cback" class="cb">&larr;&nbsp; Alle Projekte</button><span id="cno"></span></div>
